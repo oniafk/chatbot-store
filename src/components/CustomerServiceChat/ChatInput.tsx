@@ -15,7 +15,7 @@ const ChatInput: FC<ChatInputProps> = ({ className, ...props }) => {
     mutationFn: async (message: Message) => {
       const response = await fetch("/api/message", {
         method: "POST",
-        body: JSON.stringify({ message: "Hello" }),
+        body: JSON.stringify({ messages: [message] }),
         headers: {
           "Content-Type": "application/json",
         },
