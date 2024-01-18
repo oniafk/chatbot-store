@@ -6,8 +6,9 @@ import { useMutation } from "@tanstack/react-query";
 import { nanoid } from "nanoid";
 import { Message } from "../lib/schemas/message.schema";
 import { MessagesContext } from "../providers/chatContextProvider";
-import { set } from "zod";
+
 import { CornerDownLeft, Loader2 } from "lucide-react";
+import toast from "react-hot-toast";
 
 interface ChatInputProps extends HTMLAttributes<HTMLDivElement> {}
 
@@ -72,6 +73,11 @@ const ChatInput: FC<ChatInputProps> = ({ className, ...props }) => {
       setTimeout(() => {
         textAreaRef.current?.focus();
       }, 10);
+    },
+    onError(_, message) {
+      toast.error("Something went wrong!, please try again. ");
+      removeMessage(messages[0].id);
+      textAreaRef.current?.focus();
     },
   });
 
