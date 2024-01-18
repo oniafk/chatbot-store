@@ -1,10 +1,12 @@
 "use client";
-import { FC, HTMLAttributes, useState } from "react";
+import { FC, HTMLAttributes, useContext, useRef, useState } from "react";
 import { cn } from "../lib/utils";
 import TextareaAutosize from "react-textarea-autosize";
 import { useMutation } from "@tanstack/react-query";
 import { nanoid } from "nanoid";
 import { Message } from "../lib/schemas/message.schema";
+import { MessagesContext } from "../providers/chatContextProvider";
+import { set } from "zod";
 
 interface ChatInputProps extends HTMLAttributes<HTMLDivElement> {}
 
@@ -12,6 +14,15 @@ interface ChatInputProps extends HTMLAttributes<HTMLDivElement> {}
 
 const ChatInput: FC<ChatInputProps> = ({ className, ...props }) => {
   const [customerInput, setCustomerInput] = useState<string>("");
+  const {
+    messages,
+    addMessage,
+    removeMessage,
+    updateMessage,
+    setIsMessageUpdating,
+  } = useContext(MessagesContext);
+
+  const textAreaRef = useRef<HTMLTextAreaElement | null>(null);
 
   const { mutate: sendMessage } = useMutation({
     mutationFn: async (message: Message) => {
@@ -26,8 +37,21 @@ const ChatInput: FC<ChatInputProps> = ({ className, ...props }) => {
       return response.body;
     },
 
+    onMutate(message) {
+      addMessage(message);
+    },
+
     onSuccess: async (stream) => {
       if (!stream) throw new Error("no stream");
+      const id = nanoid();
+      const responseMessage: Message = {
+        id,
+        isUserMessage: false,
+        text: "",
+      };
+
+      addMessage(responseMessage);
+      setIsMessageUpdating(true);
 
       const reader = stream.getReader();
       const decoder = new TextDecoder();
@@ -37,8 +61,16 @@ const ChatInput: FC<ChatInputProps> = ({ className, ...props }) => {
         const { value, done: doneReading } = await reader.read();
         done = doneReading;
         const chunkValue = decoder.decode(value);
+        updateMessage(id, (prevText) => prevText + chunkValue);
         console.log("chunkValue", chunkValue);
       }
+
+      setIsMessageUpdating(false);
+      setCustomerInput("");
+
+      setTimeout(() => {
+        textAreaRef.current?.focus();
+      }, 100);
     },
   });
 
@@ -46,6 +78,7 @@ const ChatInput: FC<ChatInputProps> = ({ className, ...props }) => {
     <div {...props} className={cn(" border-t border-zinc-300", className)}>
       <div className="relative  mt-4 flex-1 overflow-hidden rounded-lg border-none outline-none">
         <TextareaAutosize
+          ref={textAreaRef}
           rows={2}
           maxRows={4}
           value={customerInput}
@@ -73,6 +106,3 @@ const ChatInput: FC<ChatInputProps> = ({ className, ...props }) => {
 };
 
 export default ChatInput;
-
-//cn tailwind classnames
-// react query for data fetching -- https://react-query.tanstack.com/

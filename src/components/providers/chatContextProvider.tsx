@@ -57,17 +57,18 @@ export function MessagesProvider({ children }: { children: React.ReactNode }) {
     );
   };
 
-  return;
-  <MessagesContext.Provider
-    value={{
-      messages,
-      addMessage,
-      removeMessage,
-      updateMessage,
-      isMessageUpdating,
-      setIsMessageUpdating,
-    }}
-  >
-    {children}
-  </MessagesContext.Provider>;
+  return (
+    <MessagesContext.Provider
+      value={{
+        messages,
+        addMessage,
+        removeMessage,
+        updateMessage,
+        isMessageUpdating,
+        setIsMessageUpdating,
+      }}
+    >
+      {children}
+    </MessagesContext.Provider>
+  );
 }
